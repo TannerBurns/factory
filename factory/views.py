@@ -14,7 +14,7 @@ class TasksView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Tasks.objects.all()
     serializer_class = TasksSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['session']
+    filterset_fields = ['session', 'status']
     ordering_fields = ['created']
 
     def retrieve(self, request, pk=None):
