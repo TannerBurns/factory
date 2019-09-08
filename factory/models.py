@@ -1,5 +1,6 @@
 import zlib
 
+from uuid import uuid4
 from django.db import models
 
 # Create your models here.
@@ -17,17 +18,47 @@ class CompressedTextField(models.TextField):
         value = super(CompressedTextField, self).get_prep_value(value)
         return zlib.decompress(value).decode()
 
-class Tasks(models.Model):
+class Task(models.Model):
     class Meta:
-        db_table = "factory.tasks"
+        db_table = "factory.task"
+        app_label = "factory"
+
+    created = models.DateTimeField(auto_now_add=True)
+    task = models.CharField(default=str(uuid4()), max_length=128)
+    session = models.CharField(default=str(uuid4()), max_length=128)
+    status = models.CharField(default="CREATED", max_length=256)
+
+class Operation(models.Model):
+    class Meta:
+        db_table = "factory.operation"
+        app_label = "factory"
+
+    created = models.DateTimeField(auto_now_add=True)
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name='operation')
+    name = models.CharField(default="", max_length=256)
+    docstring = models.TextField(default="")
+
+
+class Runtime(models.Model):
+    class Meta:
+        db_table = "factory.runtime"
+        app_label = "factory"
+    
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name="runtime")
+    start = models.FloatField(default=0)
+    stop = models.FloatField(default=0)
+    total = models.FloatField(default=0)
+    
+
+class Content(models.Model):
+    class Meta:
+        db_table = "factory.content"
         app_label = "factory"
     
     created = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(default="CREATE", max_length=256)
-    name = models.CharField(default="UNKNOWN", max_length=256)
-    task_id = models.CharField(default="ERROR", max_length=64)
-    session = models.CharField(default="NONE", max_length=256)
-    start = models.FloatField(default=0)
-    runtime = models.FloatField(default=0)
-    errors = models.TextField(default="")
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name='content')
+    errors = CompressedTextField(default="[]")
     results = CompressedTextField(default="[]")
+
+
+
