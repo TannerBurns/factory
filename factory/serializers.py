@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from .models import Task, Session, Operation, Runtime, Content
-
-class SessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Session
-        fields = ("created", "session_id")
-        read_only_fields = ("created", "session_id")
+from .models import Task, Operation, Runtime, Content
 
 class OperationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,8 +11,8 @@ class OperationSerializer(serializers.ModelSerializer):
 class RuntimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Runtime
-        fields = ("start", "stop", "runtime")
-        read_only_fields = ("start", "stop", "runtime")
+        fields = ("start", "stop", "total")
+        read_only_fields = ("start", "stop", "total")
 
 class RuntimeListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,18 +27,16 @@ class ContentSerializer(serializers.ModelSerializer):
         read_only_fields = ("created", "errors", "results")
 
 class TaskSerializer(serializers.ModelSerializer):
-    session = SessionSerializer()
     operation = OperationSerializer()
     content = ContentSerializer()
     runtime = RuntimeSerializer()
     class Meta:
         model = Task
-        fields = ("created", "task_id", "status", "session", "operation", "content", "runtime")
+        fields = ("created", "task", "status", "session", "operation", "content", "runtime")
 
 class TaskListSerializer(serializers.ModelSerializer):
-    session = SessionSerializer()
     operation = OperationSerializer()
     runtime = RuntimeListSerializer()
     class Meta:
         model = Task
-        fields = ("created", "task_id", "status", "session", "operation", "runtime")
+        fields = ("created", "task", "status", "session", "operation", "runtime")

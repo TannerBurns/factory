@@ -10,7 +10,7 @@ from uuid import uuid4
 from typing import Callable, Iterable, Tuple
 from multiprocessing import Pool
 
-from .models import Task, Session, Operation, Runtime, Content
+from .models import Task, Operation, Runtime, Content
 
 class factoryze:
     def __init__(self, operators=4, workers=16, session=str(uuid4())):
@@ -44,19 +44,19 @@ class factoryze:
         else:
             opname, opdoc = self._extract_operation(fn)
 
-        session, created = Session.objects.get_or_create(session_id=self.session)
         task = Task.objects.create(
-            task_id = task_id, 
-            status = status, 
-            session = session
+            task = task_id,
+            session = self.session,
+            status = status
         )
-        runtime = Runtime.objects.create(start=time.time(), task=task)
         task.save()
+
+        runtime = Runtime.objects.create(start=time.time(), task=task)
         runtime.save()
 
         operation = Operation.objects.create(name=opname, docstring=opdoc, task=task)
         operation.save()
-
+        
         try:
             ret = fn(args)
             status = "COMPLETE"
@@ -78,7 +78,7 @@ class factoryze:
         task.save()
       
         runtime.stop = time.time()
-        runtime.runtime = runtime.stop - start
+        runtime.total = runtime.stop - start
         runtime.save()
 
 

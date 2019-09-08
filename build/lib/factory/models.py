@@ -18,23 +18,15 @@ class CompressedTextField(models.TextField):
         value = super(CompressedTextField, self).get_prep_value(value)
         return zlib.decompress(value).decode()
 
-class Session(models.Model):
-    class Meta:
-        db_table = "factory.session"
-        app_label = "factory"
-
-    created = models.DateTimeField(auto_now_add=True)
-    session_id = models.CharField(unique=True, default=str(uuid4()), max_length=128)
-
 class Task(models.Model):
     class Meta:
         db_table = "factory.task"
         app_label = "factory"
 
     created = models.DateTimeField(auto_now_add=True)
-    task_id = models.CharField(default=str(uuid4()), max_length=128)
+    task = models.CharField(default=str(uuid4()), max_length=128)
+    session = models.CharField(default=str(uuid4()), max_length=128)
     status = models.CharField(default="CREATED", max_length=256)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="session")
 
 class Operation(models.Model):
     class Meta:
@@ -55,7 +47,7 @@ class Runtime(models.Model):
     task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name="runtime")
     start = models.FloatField(default=0)
     stop = models.FloatField(default=0)
-    runtime = models.FloatField(default=0)
+    total = models.FloatField(default=0)
     
 
 class Content(models.Model):

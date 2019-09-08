@@ -14,17 +14,17 @@ class TaskView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Task.objects.all()
     serializer_class = TaskListSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status']
+    filterset_fields = ['status', 'session']
     ordering_fields = ['created']
 
     def retrieve(self, request, pk=None):
-        task = Task.objects.all().filter(task_id=pk)
+        task = Task.objects.all().filter(task=pk)
         if task:
             serializer = TaskSerializer(task, many=True).data[0]
             if serializer:
                 serializer["content"]["results"] = json.loads(serializer["content"]["results"])
                 serializer["content"]["errors"] = json.loads(serializer["content"]["errors"])
                 if serializer["runtime"]["stop"] == 0:
-                    serializer["runtime"]["runtime"] = time.time() - serializer["runtime"]["start"]
+                    serializer["runtime"]["total"] = time.time() - serializer["runtime"]["start"]
                 return Response(serializer)
         return Response(status=404)
