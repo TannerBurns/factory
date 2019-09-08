@@ -5,8 +5,8 @@ from .models import Task, Operation, Runtime, Content
 class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
-        fields = ("created", "name", "docstring")
-        read_only_fields = ("created", "name", "docstring")
+        fields = ("created", "name", "docstring", "sha256")
+        read_only_fields = ("created", "name", "docstring", "sha256")
 
 class RuntimeSerializer(serializers.ModelSerializer):
     class Meta:
