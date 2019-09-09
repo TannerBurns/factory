@@ -11,7 +11,7 @@ from uuid import uuid4
 from typing import Callable, Iterable, Tuple
 from multiprocessing import Pool
 
-from .models import Task, Operation, Runtime, Content
+from .models import Task, Operation, Runtime, Content, Input, Output
 
 class factoryze:
     def __init__(self, operators=4, workers=16, session=str(uuid4())):
@@ -42,24 +42,43 @@ class factoryze:
 
         runtime = Runtime.objects.create(start=time.time(), task=task)
         runtime.save()
-
-        
         
         try:
             ret = fn(args)
             status = "COMPLETE"
             if ret:
-                results = json.dumps(ret)
-                errors = json.dumps([])
+                results = ret
+                errors = []
             if not ret:
-                errors = json.dumps(["no results or errors found, reporting as failed"])
+                errors = ["no results or errors found, reporting as failed"]
                 status = "FAILED"
         except Exception as err:
             status = "ERROR"
-            errors = json.dumps([str(err)])
-            results = json.dumps([])            
-        
-        content = Content.objects.create(results=results, errors=errors, task=task)
+            errors = [str(err)]
+            results = []
+
+        cinput, created = Input.objects.get_or_create(
+            type = str(type(args[0])),
+            count = len(args),
+            sha256 = hashlib.sha256(
+                str(args).encode()
+            ).hexdigest()
+        )
+        cinput.save()
+        output, created = Output.objects.get_or_create(
+            count = len(results),
+            errors = json.dumps(errors),
+            results = json.dumps(results),
+            sha256 = hashlib.sha256(
+                str(results+errors).encode()
+            ).hexdigest()
+        )
+        output.save()        
+        content = Content.objects.create(
+            task = task,
+            input = cinput,
+            output = output
+        )
         content.save()
 
         task.status = status
@@ -69,13 +88,11 @@ class factoryze:
         runtime.total = runtime.stop - start
         runtime.save()
 
-
         return task_id
 
     
     async def _worker(self, fn:Callable, group: list) -> list:
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.workers) as executor:
-            #self.loop = asyncio.get_event_loop()
             futures = [
                 self.loop.run_in_executor(executor, partial(fn, item)) 
                 for item in group if item

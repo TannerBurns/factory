@@ -47,10 +47,31 @@ class Runtime(models.Model):
         app_label = "factory"
     
     task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name="runtime")
+    created = models.DateTimeField(auto_now_add=True)
     start = models.FloatField(default=0)
     stop = models.FloatField(default=0)
     total = models.FloatField(default=0)
+
+class Input(models.Model):
+    class Meta:
+        db_table = "factory.content.input"
+        app_label = "factory"
     
+    created = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=64, default="None")
+    count = models.IntegerField(default=0)
+    sha256 = models.CharField(unique=True, max_length=256, default="")
+
+class Output(models.Model):
+    class Meta:
+        db_table = "factory.content.output"
+        app_label = "factory"
+    
+    created = models.DateTimeField(auto_now_add=True)
+    count = models.IntegerField(default=0)
+    errors = CompressedTextField(default="[]")
+    results = CompressedTextField(default="[]")
+    sha256 = models.CharField(unique=True, max_length=256, default="")  
 
 class Content(models.Model):
     class Meta:
@@ -59,8 +80,8 @@ class Content(models.Model):
     
     created = models.DateTimeField(auto_now_add=True)
     task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name='content')
-    errors = CompressedTextField(default="[]")
-    results = CompressedTextField(default="[]")
+    input = models.ForeignKey(Input, on_delete=models.CASCADE, related_name='input')
+    output = models.ForeignKey(Output, on_delete=models.CASCADE, related_name='output')
 
 
 

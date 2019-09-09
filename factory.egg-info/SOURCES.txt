@@ -15,10 +15,4 @@ factory.egg-info/SOURCES.txt
 factory.egg-info/dependency_links.txt
 factory.egg-info/requires.txt
 factory.egg-info/top_level.txt
-factory/__pycache__/__init__.cpython-37.pyc
-factory/__pycache__/admin.cpython-37.pyc
-factory/__pycache__/models.cpython-37.pyc
-factory/__pycache__/serializers.cpython-37.pyc
-factory/__pycache__/urls.cpython-37.pyc
-factory/__pycache__/views.cpython-37.pyc
 factory/migrations/__init__.py

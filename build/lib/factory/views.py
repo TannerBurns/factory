@@ -17,14 +17,23 @@ class TaskView(viewsets.GenericViewSet, mixins.ListModelMixin):
     filterset_fields = ['status', 'session']
     ordering_fields = ['created']
 
+    
     def retrieve(self, request, pk=None):
         task = Task.objects.all().filter(task=pk)
         if task:
-            serializer = TaskSerializer(task, many=True).data[0]
-            if serializer:
-                serializer["content"]["results"] = json.loads(serializer["content"]["results"])
-                serializer["content"]["errors"] = json.loads(serializer["content"]["errors"])
-                if serializer["runtime"]["stop"] == 0:
-                    serializer["runtime"]["total"] = time.time() - serializer["runtime"]["start"]
-                return Response(serializer)
+            serializer = TaskSerializer(task, many=True)
+            
+            for i in range(0, len(serializer.data)):
+                if serializer.data[i]:
+                    serializer.data[i] = dict(serializer.data[i])
+                    serializer.data[i]["content"]["output"]["results"] = json.loads(
+                        serializer.data[i]["content"]["output"]["results"]
+                    )
+                    serializer.data[i]["content"]["output"]["errors"] = json.loads(
+                        serializer.data[i]["content"]["output"]["errors"]
+                    )
+                    if serializer.data[i]["runtime"]["stop"] == 0:
+                        serializer.data[i]["runtime"]["total"] = time.time() - serializer.data[i]["runtime"]["start"]
+            return Response(serializer.data)
         return Response(status=404)
+    
