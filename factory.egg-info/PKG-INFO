@@ -93,88 +93,75 @@ Description: Factory
         
         ```json
         {
-            "created": "2019-09-09T03:33:50.084662Z",
-            "task": "64f705b5-d416-4a79-8518-a272b9ebc0ea",
+            "created": "2019-09-10T02:58:37.827669Z",
+            "task": "a342614f-a349-4267-9798-d6c6159cb16a",
             "status": "COMPLETE",
             "session": "TestingSession",
             "operation": {
-                "created": "2019-09-09T03:33:50.071129Z",
-                "sha256": "cf60b1eec981d900a4f0281a2ede0c751f2a958d04d9e3382ff894ec371d9fa0",
+                "created": "2019-09-10T02:58:37.821612Z",
+                "sha256": "c2b6275d61d5e00419208f529b28a4e1f5f70a32f1ebb9764be0af66c9c03430",
                 "name": "add",
                 "docstring": "add up the given arguments\n    \n    Arguments:\n        args {list} -- list of numbers to add\n    \n    Returns:\n        int -- total of all args\n    "
             },
-            "content": {
-                "created": "2019-09-09T03:33:50.110943Z",
-                "input": {
-                    "created": "2019-09-09T03:33:50.101003Z",
-                    "sha256": "db2f3da3eb35b6bc772b68937fcd096552b573dc07ffc5c44aae5340a0e6a1a7",
-                    "count": 16
-                },
-                "output": {
-                    "created": "2019-09-09T03:33:50.106556Z",
-                    "sha256": "5cc76a93e727e197fe99fbe8b5ff6b262e21b6aa619091f550d8f465340b413b",
-                    "count": 16
-                }
-            },
             "runtime": {
-                "created": "2019-09-09T03:33:50.087638Z",
-                "start": 1568000030.087261
+                "created": "2019-09-10T02:58:37.846842Z",
+                "start": 1568084317.8465128
             }
         }
         ```
         
-        Task View /tasks/64f705b5-d416-4a79-8518-a272b9ebc0ea GET
+        Task View /tasks/{task_uuid} GET
         
         ```json
         {
-            "created": "2019-09-09T03:33:50.084662Z",
-            "task": "64f705b5-d416-4a79-8518-a272b9ebc0ea",
+            "created": "2019-09-10T02:58:37.827669Z",
+            "task": "a342614f-a349-4267-9798-d6c6159cb16a",
             "status": "COMPLETE",
             "session": "TestingSession",
             "operation": {
-                "created": "2019-09-09T03:33:50.071129Z",
-                "sha256": "cf60b1eec981d900a4f0281a2ede0c751f2a958d04d9e3382ff894ec371d9fa0",
+                "created": "2019-09-10T02:58:37.821612Z",
+                "sha256": "c2b6275d61d5e00419208f529b28a4e1f5f70a32f1ebb9764be0af66c9c03430",
                 "name": "add",
                 "docstring": "add up the given arguments\n    \n    Arguments:\n        args {list} -- list of numbers to add\n    \n    Returns:\n        int -- total of all args\n    "
             },
-            "content": {
-                "created": "2019-09-09T03:33:50.110943Z",
-                "input": {
-                    "created": "2019-09-09T03:33:50.101003Z",
-                    "sha256": "db2f3da3eb35b6bc772b68937fcd096552b573dc07ffc5c44aae5340a0e6a1a7",
-                    "type": "<class 'tuple'>",
-                    "count": 16
-                },
-                "output": {
-                    "created": "2019-09-09T03:33:50.106556Z",
-                    "sha256": "5cc76a93e727e197fe99fbe8b5ff6b262e21b6aa619091f550d8f465340b413b",
-                    "count": 16,
+            "content": [
+                {
+                    "created": "2019-09-10T02:58:37.840561Z",
                     "errors": [],
                     "results": [
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28
                     ]
                 }
-            },
+            ],
             "runtime": {
-                "created": "2019-09-09T03:33:50.087638Z",
-                "start": 1568000030.087261,
-                "stop": 1568000030.117734,
-                "total": 0.05488181114196777
+                "created": "2019-09-10T02:58:37.846842Z",
+                "start": 1568084317.8465128,
+                "stop": 1568084317.859692,
+                "total": 0.058561086654663086
             }
         }
         ```

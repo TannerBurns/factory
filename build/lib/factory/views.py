@@ -34,6 +34,6 @@ class TaskView(viewsets.GenericViewSet, mixins.ListModelMixin):
                     )
                     if serializer.data[i]["runtime"]["stop"] == 0:
                         serializer.data[i]["runtime"]["total"] = time.time() - serializer.data[i]["runtime"]["start"]
-            return Response(serializer.data)
+            return Response(serializer.data[0])
         return Response(status=404)
     
