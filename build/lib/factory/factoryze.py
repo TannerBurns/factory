@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import asyncio
+import hashlib
 import concurrent.futures
 
 from functools import partial
@@ -18,76 +19,92 @@ class factoryze:
         self.workers = workers
         self.session = session
 
-    def _extract_operation(self, fn: Callable) -> Tuple[str, str]:
-        name = "UNKNOWN"
-        docstring = "None"
-        try:
-            name = fn.__name__
-            docstring = fn.__doc__
-        except:
-            try:
-                name = fn.func.__name__
-                docstring = fn.__doc__
-            except:
-                return name, docstring
-            return name, docstring
-        return name, docstring
-
-
     def start(self, fn: Callable, args: list) -> str:
         task_id = str(uuid4())
         start = time.time()
         status = "IN PROGRESS"
-        if self.opname:
-            opname = self.opname
-            opdoc = self.opdoc if self.opdoc else "None"
-        else:
-            opname, opdoc = self._extract_operation(fn)
-
-        task = Task.objects.create(
-            task = task_id,
-            session = self.session,
-            status = status
-        )
-        task.save()
-
-        runtime = Runtime.objects.create(start=time.time(), task=task)
-        runtime.save()
-
-        operation = Operation.objects.create(name=opname, docstring=opdoc, task=task)
-        operation.save()
         
         try:
             ret = fn(args)
             status = "COMPLETE"
             if ret:
-                results = json.dumps(ret)
-                errors = json.dumps([])
+                results = ret
+                errors = []
+                if type(ret) == dict:
+                    if "results" in ret and "errors" in ret:
+                        results = ret.get("results")
+                        errors = ret.get("errors")
             if not ret:
-                errors = json.dumps(["no results or errors found, reporting as failed"])
+                errors = ["no results or errors found, reporting as failed"]
                 status = "FAILED"
         except Exception as err:
             status = "ERROR"
-            errors = json.dumps([str(err)])
-            results = json.dumps([])            
+            errors = [str(err)]
+            results = []
+        try:
+            content = Content.objects.get(
+                input_type = str(type(args[0])),
+                input_count = len(args),
+                input_sha256 = hashlib.sha256(
+                    str(args).encode()
+                ).hexdigest(),
+                output_count = len(results),
+                output_sha256 = hashlib.sha256(
+                    str(results+errors).encode()
+                ).hexdigest(),
+                errors = json.dumps(errors),
+                results = json.dumps(results)
+            )
+            return content.task.task
+        except Content.DoesNotExist:
+            operation, created = Operation.objects.get_or_create(
+                name = self.operation.get("name"), 
+                docstring = self.operation.get("doc"),
+                hash = self.operation.get("hash"),
+                sha256 = self.operation.get("sha256")
+            )
+            operation.save()
+            
+            task = Task.objects.create(
+                task = task_id,
+                session = self.session,
+                status = status,
+                operation = operation
+            )
+            task.save()
+
+            content = Content.objects.create(
+                input_type = str(type(args[0])),
+                input_count = len(args),
+                input_sha256 = hashlib.sha256(
+                    str(args).encode()
+                ).hexdigest(),
+                output_count = len(results),
+                output_sha256 = hashlib.sha256(
+                    str(results+errors).encode()
+                ).hexdigest(),
+                errors = json.dumps(errors),
+                results = json.dumps(results),
+                task = task
+            )
+            content.save()
+            
+            runtime = Runtime.objects.create(start=time.time(), task=task)
+            runtime.save()
+            content.save()
+
+            task.status = status
+            task.save()
         
-        content = Content.objects.create(results=results, errors=errors, task=task)
-        content.save()
-
-        task.status = status
-        task.save()
-      
-        runtime.stop = time.time()
-        runtime.total = runtime.stop - start
-        runtime.save()
-
+            runtime.stop = time.time()
+            runtime.total = runtime.stop - start
+            runtime.save()
 
         return task_id
 
     
     async def _worker(self, fn:Callable, group: list) -> list:
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.workers) as executor:
-            #self.loop = asyncio.get_event_loop()
             futures = [
                 self.loop.run_in_executor(executor, partial(fn, item)) 
                 for item in group if item
@@ -107,8 +124,14 @@ class factoryze:
         ]
     
     def factoryze(self, fn: Callable, args: list) -> list:
-        self.opname = fn.__name__
-        self.opdoc = fn.__doc__
+        self.operation = {
+            "name": fn.__name__,
+            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "hash": fn.__hash__(),
+            "sha256": hashlib.sha256(
+                fn.__name__.encode()+fn.__doc__.encode()+str(fn.__hash__()).encode()
+            ).hexdigest()
+        }
 
         csize = int(len(args)/self.operators) if int(len(args)/self.operators) > 0 else 1
         chunked = [
@@ -121,8 +144,14 @@ class factoryze:
             return pool.map(manager, chunked)
     
     def multiprocess_factoryze(self, fn: Callable, args: list) -> list:
-        self.opname = fn.__name__
-        self.opdoc = fn.__doc__
+        self.operation = {
+            "name": fn.__name__,
+            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "hash": fn.__hash__(),
+            "sha256": hashlib.sha256(
+                bytesarray(fn.__name__)+bytesarray(fn.__doc__)+bytesarray(fn.__hash__())
+            ).hexdigest()
+        }
 
         chunked = [
             args[ind:ind+self.workers]
@@ -137,8 +166,14 @@ class factoryze:
             ]
     
     def async_factoryze(self, fn: Callable, args: list) -> list:
-        self.opname = fn.__name__
-        self.opdoc = fn.__doc__
+        self.operation = {
+            "name": fn.__name__,
+            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "hash": fn.__hash__(),
+            "sha256": hashlib.sha256(
+                bytesarray(fn.__name__)+bytesarray(fn.__doc__)+bytesarray(fn.__hash__())
+            ).hexdigest()
+        }
 
         operator = partial(self._factoryze_operator, fn)
         manager = partial(self.start, operator)

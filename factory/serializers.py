@@ -5,20 +5,20 @@ from .models import Task, Operation, Runtime, Content
 class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
-        fields = ("created", "name", "docstring")
-        read_only_fields = ("created", "name", "docstring")
+        fields = ("created", "sha256", "name", "docstring")
+        read_only_fields = ("created", "sha256", "name", "docstring")
 
 class RuntimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Runtime
-        fields = ("start", "stop", "total")
-        read_only_fields = ("start", "stop", "total")
+        fields = ("created", "start", "stop", "total")
+        read_only_fields = ("created", "start", "stop", "total")
 
 class RuntimeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Runtime
-        fields = ("start",)
-        read_only_fields = ("start",)
+        fields = ("created", "start",)
+        read_only_fields = ("created", "start",) 
 
 class ContentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +28,7 @@ class ContentSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     operation = OperationSerializer()
-    content = ContentSerializer()
+    content = ContentSerializer(many=True)
     runtime = RuntimeSerializer()
     class Meta:
         model = Task
