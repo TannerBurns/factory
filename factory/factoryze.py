@@ -11,7 +11,7 @@ from uuid import uuid4
 from typing import Callable, Iterable, Tuple
 from multiprocessing import Pool
 
-from .models import Task, Operation, Runtime, Content, Input, Output
+from .models import Task, Operation, Runtime, Content
 
 class factoryze:
     def __init__(self, operators=4, workers=16, session=str(uuid4())):
@@ -23,25 +23,6 @@ class factoryze:
         task_id = str(uuid4())
         start = time.time()
         status = "IN PROGRESS"
-
-        operation, created = Operation.objects.get_or_create(
-            name = self.operation.get("name"), 
-            docstring = self.operation.get("doc"),
-            hash = self.operation.get("hash"),
-            sha256 = self.operation.get("sha256")
-        )
-        operation.save()
-        
-        task = Task.objects.create(
-            task = task_id,
-            session = self.session,
-            status = status,
-            operation = operation
-        )
-        task.save()
-
-        runtime = Runtime.objects.create(start=time.time(), task=task)
-        runtime.save()
         
         try:
             ret = fn(args)
@@ -49,6 +30,10 @@ class factoryze:
             if ret:
                 results = ret
                 errors = []
+                if type(ret) == dict:
+                    if "results" in ret and "errors" in ret:
+                        results = ret.get("results")
+                        errors = ret.get("errors")
             if not ret:
                 errors = ["no results or errors found, reporting as failed"]
                 status = "FAILED"
@@ -56,37 +41,64 @@ class factoryze:
             status = "ERROR"
             errors = [str(err)]
             results = []
+        try:
+            content = Content.objects.get(
+                input_type = str(type(args[0])),
+                input_count = len(args),
+                input_sha256 = hashlib.sha256(
+                    str(args).encode()
+                ).hexdigest(),
+                output_count = len(results),
+                output_sha256 = hashlib.sha256(
+                    str(results+errors).encode()
+                ).hexdigest(),
+                errors = json.dumps(errors),
+                results = json.dumps(results)
+            )
+            return content.task.task
+        except Content.DoesNotExist:
+            operation, created = Operation.objects.get_or_create(
+                name = self.operation.get("name"), 
+                docstring = self.operation.get("doc"),
+                hash = self.operation.get("hash"),
+                sha256 = self.operation.get("sha256")
+            )
+            operation.save()
+            
+            task = Task.objects.create(
+                task = task_id,
+                session = self.session,
+                status = status,
+                operation = operation
+            )
+            task.save()
 
-        cinput, created = Input.objects.get_or_create(
-            type = str(type(args[0])),
-            count = len(args),
-            sha256 = hashlib.sha256(
-                str(args).encode()
-            ).hexdigest()
-        )
-        cinput.save()
-        output, created = Output.objects.get_or_create(
-            count = len(results),
-            errors = json.dumps(errors),
-            results = json.dumps(results),
-            sha256 = hashlib.sha256(
-                str(results+errors).encode()
-            ).hexdigest()
-        )
-        output.save()        
-        content = Content.objects.create(
-            task = task,
-            input = cinput,
-            output = output
-        )
-        content.save()
+            content = Content.objects.create(
+                input_type = str(type(args[0])),
+                input_count = len(args),
+                input_sha256 = hashlib.sha256(
+                    str(args).encode()
+                ).hexdigest(),
+                output_count = len(results),
+                output_sha256 = hashlib.sha256(
+                    str(results+errors).encode()
+                ).hexdigest(),
+                errors = json.dumps(errors),
+                results = json.dumps(results),
+                task = task
+            )
+            content.save()
+            
+            runtime = Runtime.objects.create(start=time.time(), task=task)
+            runtime.save()
+            content.save()
 
-        task.status = status
-        task.save()
-      
-        runtime.stop = time.time()
-        runtime.total = runtime.stop - start
-        runtime.save()
+            task.status = status
+            task.save()
+        
+            runtime.stop = time.time()
+            runtime.total = runtime.stop - start
+            runtime.save()
 
         return task_id
 

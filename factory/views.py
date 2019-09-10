@@ -26,11 +26,11 @@ class TaskView(viewsets.GenericViewSet, mixins.ListModelMixin):
             for i in range(0, len(serializer.data)):
                 if serializer.data[i]:
                     serializer.data[i] = dict(serializer.data[i])
-                    serializer.data[i]["content"]["output"]["results"] = json.loads(
-                        serializer.data[i]["content"]["output"]["results"]
+                    serializer.data[i]["content"][0]["results"] = json.loads(
+                        serializer.data[i]["content"][0]["results"]
                     )
-                    serializer.data[i]["content"]["output"]["errors"] = json.loads(
-                        serializer.data[i]["content"]["output"]["errors"]
+                    serializer.data[i]["content"][0]["errors"] = json.loads(
+                        serializer.data[i]["content"][0]["errors"]
                     )
                     if serializer.data[i]["runtime"]["stop"] == 0:
                         serializer.data[i]["runtime"]["total"] = time.time() - serializer.data[i]["runtime"]["start"]
