@@ -124,12 +124,14 @@ class factoryze:
         ]
     
     def factoryze(self, fn: Callable, args: list) -> list:
+        name = fn.__name__ if fn.__name__ else ""
+        doc = fn.__doc__ if fn.__doc__ else ""
         self.operation = {
-            "name": fn.__name__,
-            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "name": name,
+            "doc": doc,
             "hash": fn.__hash__(),
             "sha256": hashlib.sha256(
-                fn.__name__.encode()+fn.__doc__.encode()+str(fn.__hash__()).encode()
+                name.encode()+doc.encode()+str(fn.__hash__()).encode()
             ).hexdigest()
         }
 
@@ -144,12 +146,14 @@ class factoryze:
             return pool.map(manager, chunked)
     
     def multiprocess_factoryze(self, fn: Callable, args: list) -> list:
+        name = fn.__name__ if fn.__name__ else ""
+        doc = fn.__doc__ if fn.__doc__ else ""
         self.operation = {
-            "name": fn.__name__,
-            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "name": name,
+            "doc": doc,
             "hash": fn.__hash__(),
             "sha256": hashlib.sha256(
-                bytesarray(fn.__name__)+bytesarray(fn.__doc__)+bytesarray(fn.__hash__())
+                name.encode()+doc.encode()+str(fn.__hash__()).encode()
             ).hexdigest()
         }
 
@@ -166,12 +170,14 @@ class factoryze:
             ]
     
     def async_factoryze(self, fn: Callable, args: list) -> list:
+        name = fn.__name__ if fn.__name__ else ""
+        doc = fn.__doc__ if fn.__doc__ else ""
         self.operation = {
-            "name": fn.__name__,
-            "doc": fn.__doc__ if fn.__doc__ else "None",
+            "name": name,
+            "doc": doc,
             "hash": fn.__hash__(),
             "sha256": hashlib.sha256(
-                bytesarray(fn.__name__)+bytesarray(fn.__doc__)+bytesarray(fn.__hash__())
+                name.encode()+doc.encode()+str(fn.__hash__()).encode()
             ).hexdigest()
         }
 

@@ -62,7 +62,7 @@ class Content(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='content', blank=True)
     input_type = models.CharField(max_length=64, default="None")
     input_count = models.IntegerField(default=0)
-    input_sha256 = models.CharField(unique=True, max_length=256, default="")
+    input_sha256 = models.CharField(max_length=256, default="")
     output_count = models.IntegerField(default=0)
     output_sha256 = models.CharField(unique=True, max_length=256, default="")
     errors = CompressedTextField(default="[]")
