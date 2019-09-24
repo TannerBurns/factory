@@ -72,7 +72,7 @@ class Testview(viewsets.ViewSet):
     """
     def list(self, request):
         client = factoryze(operators=4, workers=32, session="TestingSession")
-        args = [(x,y) for x in range(0,8) for y in range(8, 16)]
+        args = [(x,y) for x in range(0,10) for y in range(10, 20)]
         resp = client.factoryze(add, args)
         if resp:
             return Response(status=200)
