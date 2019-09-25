@@ -50,7 +50,7 @@ class factoryze:
                 ).hexdigest(),
                 output_count = len(results),
                 output_sha256 = hashlib.sha256(
-                    str(results+errors).encode()
+                    str(str(results)+str(errors)).encode()
                 ).hexdigest(),
                 errors = json.dumps(errors),
                 results = json.dumps(results)
@@ -81,7 +81,7 @@ class factoryze:
                 ).hexdigest(),
                 output_count = len(results),
                 output_sha256 = hashlib.sha256(
-                    str(results+errors).encode()
+                    str(str(results)+str(errors)).encode()
                 ).hexdigest(),
                 errors = json.dumps(errors),
                 results = json.dumps(results),
