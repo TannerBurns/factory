@@ -14,24 +14,36 @@ from multiprocessing import Pool
 from .models import Task, Operation, Runtime, Content, Session
 
 class factoryze:
+    """factoryze -- class for running user functions and saving results"""
     def __init__(self, operators=4, workers=16, session=f'factoryze-client-{str(time.time())}'):
         self.operators = operators
         self.workers = workers
         self.session = session.replace(".", "-")
 
     def start(self, fn: Callable, args: list) -> str:
+        """start -- function for running function and saving results into models
+        
+        Arguments:
+            fn {Callable} -- user defined function for factory
+            args {list} -- list of arguments for the user defined function
+        
+        Returns:
+            str -- task id
+        """
+
         # initialize vars
         task_id = str(uuid4())
         start = time.time()
         status = "IN PROGRESS"
 
+        # find current session objects with same name
         session = Session.objects.all().filter(name=self.session)
-        if len(session) > 0:
+        if len(session) > 0: # get first item from QuerySet
             session = session[0]
-        else:
+        else: # create new session object
             session, _ = Session.objects.get_or_create(name=self.session)
 
-
+        # get or create operation object if it does not exist
         operation, _ = Operation.objects.get_or_create(
             name = self.operation.get("name"), 
             docstring = self.operation.get("doc"),
@@ -40,36 +52,53 @@ class factoryze:
         )
         operation.save()
 
+        # create a new task object as if every task is a new one
         task = Task.objects.create(
             task = task_id,
             status = status,
             operation = operation
         )
         task.save()
+
+        # add task to the current session
         session.tasks.add(task)
         session.save()
 
+        # create a new runtime object
         runtime = Runtime.objects.create(start=time.time(), task=task)
         runtime.save()
         
+        # get results from given function with given args
         try:
+            # call function with arguments
             ret = fn(args)
+            # set status to complete after function finishes
             status = "COMPLETE"
+
+            # check if there was any results
             if ret:
+                # set results and errors (no errors found yet)
                 results = ret
                 errors = []
+                # check if user function returns as results and errors in a dict (will flatten results)
                 if type(ret) == dict:
+                    # check for keys and save if found
                     if "results" in ret and "errors" in ret:
                         results = ret.get("results")
                         errors = ret.get("errors")
-            if not ret:
+            else:
+                # no results were found but no errors, function was probably not returning anything
                 errors = ["no results or errors found, reporting as failed"]
+                # set status to failed since task performed blank work
                 status = "FAILED"
         except Exception as err:
+            # something went wrong in the function that threw an exception, status set to error
             status = "ERROR"
+            # add error string to errors
             errors = [str(err)]
             results = []
 
+        # attempt to create new content only if results have not been seen before
         try:
             # check if input and output already exist
             content = Content.objects.get(
@@ -86,7 +115,7 @@ class factoryze:
                 results = json.dumps(results)
             )
 
-            # clean up temporary model objects
+            # if duplicate work, clean up temporary model objects
             session.tasks.remove(task)
             session.save()
             task.delete()
@@ -98,8 +127,11 @@ class factoryze:
             if task.id not in tids:
                 session.tasks.add(task)
                 session.save()
+            
+            # return already worked task id
             return content.task.task
         except Content.DoesNotExist as Exception:
+            # handle new content
             content = Content.objects.create(
                 input_type = str(type(args[0])),
                 input_count = len(args),
@@ -116,13 +148,16 @@ class factoryze:
             )
             content.save()
 
+        # set the task status
         task.status = status
         task.save()
     
+        # set the runtime for task
         runtime.stop = time.time()
         runtime.total = runtime.stop - start
         runtime.save()
 
+        # return task id
         return task.task
 
     
