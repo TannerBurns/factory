@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='factory',
-    version='1.40',
+    version='1.71',
     packages=find_packages(exclude=['core']),
     include_package_data=True,
     description='A simple Django app to create and track different user defined tasks',
@@ -20,7 +20,8 @@ setup(
     install_requires=[
         "django",
         "django-rest-framework",
-        "django-filter"
+        "django-filter",
+        "psycopg2"
     ],
     classifiers=[
         'Framework :: Django',
