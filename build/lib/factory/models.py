@@ -18,6 +18,7 @@ class CompressedTextField(models.TextField):
         value = super(CompressedTextField, self).get_prep_value(value)
         return zlib.decompress(value).decode()
 
+
 class Operation(models.Model):
     class Meta:
         db_table = "factory.operation"
@@ -29,6 +30,7 @@ class Operation(models.Model):
     hash = models.IntegerField(default=0)
     sha256 = models.CharField(unique=True, max_length=256, default="")
 
+
 class Task(models.Model):
     class Meta:
         db_table = "factory.task"
@@ -36,9 +38,19 @@ class Task(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     task = models.CharField(default=str(uuid4()), max_length=128)
-    session = models.CharField(default=str(uuid4()), max_length=128)
     status = models.CharField(default="CREATED", max_length=256)
     operation = models.ForeignKey(Operation, on_delete=models.CASCADE, related_name="operation")
+
+
+class Session(models.Model):
+    class Meta:
+        db_table = "factory.session"
+        app_label = "factory"
+
+    created = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(unique=True, default="None", max_length=256)
+    session_id = models.CharField(default=str(uuid4()), max_length=128)
+    tasks = models.ManyToManyField(Task, related_name="sessions")
 
 
 class Runtime(models.Model):
