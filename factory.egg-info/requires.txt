@@ -1,4 +1,4 @@
 django
 django-rest-framework
 django-filter
-psycopg2
+psycopg2-binary

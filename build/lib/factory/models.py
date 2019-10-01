@@ -27,7 +27,7 @@ class Operation(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     name = models.CharField(default="Unknown", max_length=256)
     docstring = models.TextField(default="")
-    hash = models.IntegerField(default=0)
+    hash = models.BigIntegerField(default=0)
     sha256 = models.CharField(unique=True, max_length=256, default="")
 
 

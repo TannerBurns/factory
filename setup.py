@@ -9,19 +9,19 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='factory',
-    version='1.71',
+    version='1.72',
     packages=find_packages(exclude=['core']),
     include_package_data=True,
     description='A simple Django app to create and track different user defined tasks',
     long_description=README,
-    url='#',
+    url='https://www.github.com/tannerburns/factory',
     author='Tanner Burns',
     author_email='tjburns102@gmail.com',
     install_requires=[
         "django",
         "django-rest-framework",
         "django-filter",
-        "psycopg2"
+        "psycopg2-binary"
     ],
     classifiers=[
         'Framework :: Django',
