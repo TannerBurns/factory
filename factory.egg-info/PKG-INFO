@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: factory
-Version: 1.73
+Version: 1.7.4
 Summary: A simple Django app to create and track different user defined tasks
 Home-page: https://www.github.com/tannerburns/factory
 Author: Tanner Burns
@@ -8,6 +8,8 @@ Author-email: tjburns102@gmail.com
 License: UNKNOWN
 Description: Factory
         =====
+        
+        ![Python3.7 badge](https://img.shields.io/badge/python-v3.7-blue)
         
             A simple Django app to create and track different user defined tasks
         

@@ -1,6 +1,8 @@
 Factory
 =====
 
+![Python3.7 badge](https://img.shields.io/badge/python-v3.7-blue)
+
     A simple Django app to create and track different user defined tasks
 
 
