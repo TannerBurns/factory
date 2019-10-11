@@ -2,22 +2,9 @@ import zlib
 
 from uuid import uuid4
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 # Create your models here.
-
-class CompressedTextField(models.TextField):
-    def __init__(self, compress_level=8, *args, **kwargs):
-        self.compress_level = compress_level
-        super(CompressedTextField, self).__init__(*args, **kwargs)
-    
-    def to_python(self, value):
-        value = super(CompressedTextField, self).to_python(value)
-        return zlib.compress(value.encode(), self.compress_level)
-    
-    def get_prep_value(self, value):
-        value = super(CompressedTextField, self).get_prep_value(value)
-        return zlib.decompress(value).decode()
-
 
 class Operation(models.Model):
     class Meta:
@@ -77,8 +64,8 @@ class Content(models.Model):
     input_sha256 = models.CharField(max_length=256, default="")
     output_count = models.IntegerField(default=0)
     output_sha256 = models.CharField(unique=True, max_length=256, default="")
-    errors = CompressedTextField(default="[]")
-    results = CompressedTextField(default="[]")
+    errors = JSONField(default=list)
+    results = JSONField(default=list)
 
 
 

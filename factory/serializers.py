@@ -2,6 +2,14 @@ from rest_framework import serializers
 
 from .models import Task, Operation, Runtime, Content, Session
 
+
+class JSONSerializerField(serializers.Field):
+    def to_internal_value(self, data):
+        return data
+    def to_representation(self, value):
+        return value
+
+
 class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
@@ -24,6 +32,8 @@ class RuntimeListSerializer(serializers.ModelSerializer):
 
 
 class ContentSerializer(serializers.ModelSerializer):
+    errors = JSONSerializerField()
+    results = JSONSerializerField()
     class Meta:
         model = Content
         fields = ("created", "errors", "results")
