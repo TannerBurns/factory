@@ -3,5 +3,3 @@
 *.vscode/
 *.sqlite3
 *.idea/
-*core/
-*manage.py

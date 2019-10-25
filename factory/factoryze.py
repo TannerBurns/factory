@@ -43,6 +43,18 @@ class factoryze:
         else: # create new session object
             session, _ = Session.objects.get_or_create(name=self.session)
 
+        if not hasattr(self, 'operation'):
+            name = fn.__name__ if fn.__name__ else ""
+            doc = fn.__doc__ if fn.__doc__ else ""
+            self.operation = {
+                "name": name,
+                "doc": doc,
+                "hash": fn.__hash__(),
+                "sha256": hashlib.sha256(
+                    name.encode()+doc.encode()+str(fn.__hash__()).encode()
+                ).hexdigest()
+            }
+
         # get or create operation object if it does not exist
         operation, _ = Operation.objects.get_or_create(
             name = self.operation.get("name"), 
@@ -68,6 +80,8 @@ class factoryze:
         runtime = Runtime.objects.create(start=time.time(), task=task)
         runtime.save()
         
+        results = []
+        errors = []
         # get results from given function with given args
         try:
             # call function with arguments
@@ -90,7 +104,7 @@ class factoryze:
                 # no results were found but no errors, function was probably not returning anything
                 errors = ["no results or errors found, reporting as failed"]
                 # set status to failed since task performed blank work
-                status = "FAILED"
+                status = "FAILED"   
         except Exception as err:
             # something went wrong in the function that threw an exception, status set to error
             status = "ERROR"
@@ -130,7 +144,7 @@ class factoryze:
             
             # return already worked task id
             return content.task.task
-        except Content.DoesNotExist as Exception:
+        except Content.DoesNotExist:
             # handle new content
             content = Content.objects.create(
                 input_type = str(type(args[0])),
