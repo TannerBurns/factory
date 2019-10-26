@@ -13,11 +13,12 @@ from multiprocessing import Pool
 
 from .models import Task, Operation, Runtime, Content, Session
 
-class factoryze:
+from vast import Vast
+
+class factoryze(Vast):
     """factoryze -- class for running user functions and saving results"""
-    def __init__(self, operators=4, workers=16, session=f'factoryze-client-{str(time.time())}'):
-        self.operators = operators
-        self.workers = workers
+    def __init__(self, operators=4, workers=16, session=f'factoryze-session-{str(time.time())}'):
+        super().__init__(max_processes=operators, workers=workers)
         self.session = session.replace(".", "-")
 
     def start(self, fn: Callable, args: list) -> str:
@@ -85,7 +86,7 @@ class factoryze:
         # get results from given function with given args
         try:
             # call function with arguments
-            ret = fn(args)
+            ret = self.run_in_async(fn, args)
             # set status to complete after function finishes
             status = "COMPLETE"
 
@@ -111,7 +112,6 @@ class factoryze:
             # add error string to errors
             errors = [str(err)]
             results = []
-
         # attempt to create new content only if results have not been seen before
         try:
             # check if input and output already exist
@@ -173,47 +173,6 @@ class factoryze:
 
         # return task id
         return task.task
-
-    
-    async def _worker(self, fn:Callable, group: list) -> list:
-        """_worker -- does the job and returns the results
-        
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            list -- list of returned values from the user defined function
-        """
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.workers) as executor:
-            futures = [
-                self.loop.run_in_executor(executor, partial(fn, item)) 
-                for item in group if item
-            ]
-        await asyncio.gather(*futures)
-        return [f.result() for f in futures]
-    
-
-    def _operator(self, fn: Callable, args: list) -> list:
-        """_operator -- controls all the current workers and combines their returns
-        
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            list -- list of returned values from the user defined function
-        """
-
-        self.loop = asyncio.new_event_loop()
-        return [
-            res
-            for ind in range(0, len(args), self.workers)
-            for res in self.loop.run_until_complete(
-                self._worker(fn, args[ind:ind+self.workers])
-            )
-            if res
-        ]
     
 
     def factoryze(self, fn: Callable, args: list) -> list:
@@ -242,94 +201,16 @@ class factoryze:
         }
 
         # get chunk size to evenly distribute work
-        size = int(len(args)/self.operators)
+        size = int(len(args)/self.max_processes)
         csize =  size if size > 0 else 1
 
         # create chunks based off chunk size
         chunked = [
-            args[ind:ind+int(len(args)/self.operators)]
+            args[ind:ind+int(len(args)/self.max_processes)]
             for ind in range(0, len(args), csize)
         ]
-
-        # initialize the operator function
-        operator = partial(self._operator, fn)
         # create a manager function to start the operator and workers
-        manager = partial(self.start, operator)
+        manager = partial(self.start, fn)
         # start the process pools
-        with Pool(processes=self.operators) as pool:
+        with Pool(processes=self.max_processes) as pool:
             return pool.map(manager, chunked)
-    
-
-    def multiprocess_factoryze(self, fn: Callable, args: list) -> list:
-        """multiprocess_factoryze -- run jobs using only multiproccess functionality
-        
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            list -- list of returned values from the user defined function
-        """
-
-        # get vars related to function definition
-        name = fn.__name__ if fn.__name__ else ""
-        doc = fn.__doc__ if fn.__doc__ else ""
-
-        # set current operation for class
-        self.operation = {
-            "name": name,
-            "doc": doc,
-            "hash": fn.__hash__(),
-            "sha256": hashlib.sha256(
-                name.encode()+doc.encode()+str(fn.__hash__()).encode()
-            ).hexdigest()
-        }
-
-        # create chunks based off workers size
-        chunked = [
-            args[ind:ind+self.workers]
-            for ind in range(0, len(args), self.workers)
-        ]
-
-        # iterate over chunks of process pools and combine the results
-        with Pool(processes=self.operators) as pool:
-            return [
-                res
-                for ind in range(0, len(chunked), self.operators)
-                for res in pool.map(partial(self.start, fn), chunked[ind:ind+self.operators])
-                if res
-            ]
-    
-
-    def async_factoryze(self, fn: Callable, args: list) -> list:
-        """async_factoryze -- run jobs using only asnyc functionality
-        
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            list -- list of returned values from the user defined function
-        """
-
-        # get vars related to function definition
-        name = fn.__name__ if fn.__name__ else ""
-        doc = fn.__doc__ if fn.__doc__ else ""
-
-        # set current operation for class
-        self.operation = {
-            "name": name,
-            "doc": doc,
-            "hash": fn.__hash__(),
-            "sha256": hashlib.sha256(
-                name.encode()+doc.encode()+str(fn.__hash__()).encode()
-            ).hexdigest()
-        }
-
-        # initialize the operator function
-        operator = partial(self._operator, fn)
-        # create a manager function to start the operator and workers
-        manager = partial(self.start, operator)
-        # loop through and yeild the manager's returned work
-        for ind in range(0, len(args), self.workers):
-            yield manager(args[ind:ind+self.workers])
