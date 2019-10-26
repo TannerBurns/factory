@@ -73,25 +73,14 @@ from threading import Thread
 
 from factory.factoryze import factoryze
 
-def add(args):
-    """add up the given arguments
-    
-    Arguments:
-        args {list} -- list of numbers to add
-    
-    Returns:
-        int -- total of all args
-    """
-    total = 0
-    for x in args:
-        total += x
-    return total
+def add(x, y):
+   return x+y
 
 
 class Testview(viewsets.ViewSet):
     def list(self, request):
         client = factoryze(operators=4, workers=32)
-        args = [(x,y) for x in range(0,250) for y in range(250,500)]
+        args = [([x,y], ) for x in range(0,250) for y in range(250,500)]
         Thread(target=client.factoryze, args=(add, args, )).start()
         return Response(status=200)
     
