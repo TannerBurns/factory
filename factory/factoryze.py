@@ -86,7 +86,7 @@ class factoryze(Vast):
         # get results from given function with given args
         try:
             # call function with arguments
-            ret = self.run_in_async(fn, args)
+            ret = self.run_in_eventloop(fn, args)
             # set status to complete after function finishes
             status = "COMPLETE"
 
