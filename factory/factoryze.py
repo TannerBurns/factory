@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import concurrent.futures
 
+from math import ceil
 from functools import partial
 from uuid import uuid4
 from typing import Callable, Iterable, Tuple
@@ -15,10 +16,11 @@ from .models import Task, Operation, Runtime, Content, Session
 
 from vast import Vast
 
-class factoryze(Vast):
+class Factoryze(object):
     """factoryze -- class for running user functions and saving results"""
     def __init__(self, operators=4, workers=16, session=f'factoryze-session-{str(time.time())}'):
-        super().__init__(max_processes=operators, workers=workers)
+        self.operators = operators
+        self.workers = workers
         self.session = session.replace(".", "-")
 
     def start(self, fn: Callable, args: list) -> str:
@@ -86,7 +88,8 @@ class factoryze(Vast):
         # get results from given function with given args
         try:
             # call function with arguments
-            ret = self.run_in_eventloop(fn, args)
+            vast = Vast(workers=self.workers)
+            ret = vast.run_in_eventloop(fn, args)
             # set status to complete after function finishes
             status = "COMPLETE"
 
@@ -200,17 +203,9 @@ class factoryze(Vast):
             ).hexdigest() # create sha256 hash for operation
         }
 
-        # get chunk size to evenly distribute work
-        size = int(len(args)/self.max_processes)
-        csize =  size if size > 0 else 1
-
-        # create chunks based off chunk size
-        chunked = [
-            args[ind:ind+int(len(args)/self.max_processes)]
-            for ind in range(0, len(args), csize)
-        ]
+        csize = ceil(len(args)/self.operators) if len(args) > 0 else 1
         # create a manager function to start the operator and workers
         manager = partial(self.start, fn)
         # start the process pools
-        with Pool(processes=self.max_processes) as pool:
-            return pool.map(manager, chunked)
+        with Pool(processes=self.operators) as pool:
+            return pool.map(manager, [args[index:index+csize] for index in range(0, len(args), csize)])
