@@ -18,8 +18,7 @@ setup(
         'django',
         'django-rest-framework',
         'django-filter',
-        'psycopg2-binary',
-        'vast @ https://github.com/TannerBurns/vast/archive/master.zip'
+        'psycopg2-binary'
     ],
     classifiers=[
         'Framework :: Django',
