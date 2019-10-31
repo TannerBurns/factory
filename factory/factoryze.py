@@ -14,7 +14,6 @@ from multiprocessing import Pool
 
 from .models import Task, Operation, Runtime, Content, Session
 
-from vast import Vast
 
 class Factoryze(object):
     """factoryze -- class for running user functions and saving results"""
