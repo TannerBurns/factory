@@ -23,16 +23,22 @@ class Factoryze(object):
         self.workers = workers
         self.session = session.replace(".", "-")
 
-    def start(self, fn: Callable, args: list) -> str:
-        """start -- function for running function and saving results into models
-        
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            str -- task id
+    def factoryze(self, fn: Callable, args: list= [], kwargs: dict= {}) -> str:
+        """factoryze
         """
+        # get vars related to function definition
+        name = fn.__name__ if fn.__name__ else ""
+        doc = fn.__doc__ if fn.__doc__ else ""
+
+        # set current operation for class
+        self.operation = {
+            "name": name,
+            "doc": doc,
+            "hash": fn.__hash__(),
+            "sha256": hashlib.sha256(
+                name.encode() + doc.encode() + str(fn.__hash__()).encode()
+            ).hexdigest() # create sha256 hash for operation
+        }
 
         # initialize vars
         task_id = str(uuid4())
@@ -88,8 +94,14 @@ class Factoryze(object):
         # get results from given function with given args
         try:
             # call function with arguments
-            vast = Vast(workers=self.workers)
-            ret = vast.run_in_eventloop(fn, args)
+            if args and not kwargs:
+                ret = fn(*args)
+            elif kwargs and not args:
+                ret = fn(**kwargs)
+            elif args and kwargs:
+                ret = fn(*args, **kwargs)
+            else:
+                ret = fn()
             # set status to complete after function finishes
             status = "COMPLETE"
 
@@ -176,36 +188,5 @@ class Factoryze(object):
 
         # return task id
         return task.task
-    
 
-    def factoryze(self, fn: Callable, args: list) -> list:
-        """factoryze -- run jobs using multiproccess and asnyc functionality
         
-        Arguments:
-            fn {Callable} -- user defined function for factory
-            args {list} -- list of arguments for the user defined function
-        
-        Returns:
-            list -- list of returned values from the user defined function
-        """
-
-        # get vars related to function definition
-        name = fn.__name__ if fn.__name__ else ""
-        doc = fn.__doc__ if fn.__doc__ else ""
-
-        # set current operation for class
-        self.operation = {
-            "name": name,
-            "doc": doc,
-            "hash": fn.__hash__(),
-            "sha256": hashlib.sha256(
-                name.encode() + doc.encode() + str(fn.__hash__()).encode()
-            ).hexdigest() # create sha256 hash for operation
-        }
-
-        csize = ceil(len(args)/self.operators) if len(args) > 0 else 1
-        # create a manager function to start the operator and workers
-        manager = partial(self.start, fn)
-        # start the process pools
-        with Pool(processes=self.operators) as pool:
-            return pool.map(manager, [args[index:index+csize] for index in range(0, len(args), csize)])
