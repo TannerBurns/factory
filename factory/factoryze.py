@@ -17,9 +17,7 @@ from .models import Task, Operation, Runtime, Content, Session
 
 class Factoryze(object):
     """factoryze -- class for running user functions and saving results"""
-    def __init__(self, operators=4, workers=16, session=f'factoryze-session-{str(time.time())}'):
-        self.operators = operators
-        self.workers = workers
+    def __init__(self, session=f'factoryze-session-{str(time.time())}'):
         self.session = session.replace(".", "-")
 
     def factoryze(self, fn: Callable, args: list= [], kwargs: dict= {}) -> str:
