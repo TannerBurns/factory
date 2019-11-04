@@ -8,7 +8,7 @@ from django.contrib.postgres.fields import JSONField
 
 class Operation(models.Model):
     class Meta:
-        db_table = "factory.operation"
+        db_table = "factory_operation"
         app_label = "factory"
 
     created = models.DateTimeField(auto_now_add=True)
@@ -20,7 +20,7 @@ class Operation(models.Model):
 
 class Task(models.Model):
     class Meta:
-        db_table = "factory.task"
+        db_table = "factory_task"
         app_label = "factory"
 
     created = models.DateTimeField(auto_now_add=True)
@@ -31,7 +31,7 @@ class Task(models.Model):
 
 class Session(models.Model):
     class Meta:
-        db_table = "factory.session"
+        db_table = "factory_session"
         app_label = "factory"
 
     created = models.DateTimeField(auto_now_add=True)
@@ -42,7 +42,7 @@ class Session(models.Model):
 
 class Runtime(models.Model):
     class Meta:
-        db_table = "factory.runtime"
+        db_table = "factory_runtime"
         app_label = "factory"
     
     task = models.OneToOneField(Task, on_delete=models.CASCADE, primary_key=True, related_name="runtime")
@@ -54,7 +54,7 @@ class Runtime(models.Model):
 
 class Content(models.Model):
     class Meta:
-        db_table = "factory.content"
+        db_table = "factory_content"
         app_label = "factory"
     
     created = models.DateTimeField(auto_now_add=True)

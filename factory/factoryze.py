@@ -28,7 +28,7 @@ class Factoryze(object):
         doc = fn.__doc__ if fn.__doc__ else ""
 
         # set current operation for class
-        self.operation = {
+        operation = {
             "name": name,
             "doc": doc,
             "hash": fn.__hash__(),
@@ -49,24 +49,13 @@ class Factoryze(object):
         else: # create new session object
             session, _ = Session.objects.get_or_create(name=self.session)
 
-        if not hasattr(self, 'operation'):
-            name = fn.__name__ if fn.__name__ else ""
-            doc = fn.__doc__ if fn.__doc__ else ""
-            self.operation = {
-                "name": name,
-                "doc": doc,
-                "hash": fn.__hash__(),
-                "sha256": hashlib.sha256(
-                    name.encode()+doc.encode()+str(fn.__hash__()).encode()
-                ).hexdigest()
-            }
 
         # get or create operation object if it does not exist
         operation, _ = Operation.objects.get_or_create(
-            name = self.operation.get("name"), 
-            docstring = self.operation.get("doc"),
-            hash = self.operation.get("hash"),
-            sha256 = self.operation.get("sha256")
+            name = operation.get("name"), 
+            docstring = operation.get("doc"),
+            hash = operation.get("hash"),
+            sha256 = operation.get("sha256")
         )
         operation.save()
 
@@ -104,15 +93,13 @@ class Factoryze(object):
 
             # check if there was any results
             if ret:
-                # set results and errors (no errors found yet)
-                results = ret
+                if type(ret) != list:
+                    # set results to list of ret
+                    results = [ret]
+                else:
+                    # set results
+                    results = ret
                 errors = []
-                # check if user function returns as results and errors in a dict (will flatten results)
-                if type(ret) == dict:
-                    # check for keys and save if found
-                    if "results" in ret and "errors" in ret:
-                        results = ret.get("results")
-                        errors = ret.get("errors")
             else:
                 # no results were found but no errors, function was probably not returning anything
                 errors = ["no results or errors found, reporting as failed"]
