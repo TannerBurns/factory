@@ -137,8 +137,8 @@ class Factoryze(object):
                 output_sha256 = hashlib.sha256(
                     str(str(results)+str(errors)).encode()
                 ).hexdigest(),
-                errors = json.dumps(errors),
-                results = json.dumps(results)
+                errors = errors,
+                results = results
             )
 
             # if duplicate work, clean up temporary model objects
@@ -168,8 +168,8 @@ class Factoryze(object):
                 output_sha256 = hashlib.sha256(
                     str(str(results)+str(errors)).encode()
                 ).hexdigest(),
-                errors = json.dumps(errors),
-                results = json.dumps(results),
+                errors = errors,
+                results = results,
                 task = task
             )
             content.save()

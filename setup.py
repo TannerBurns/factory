@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 
 setup(
     name='factory',
-    version='2.0.1',
+    version='2.1.5',
     packages=find_packages(exclude=['core']),
     include_package_data=True,
     description='Django app to create and track different user defined tasks',
